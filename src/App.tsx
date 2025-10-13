@@ -1,6 +1,7 @@
 import { useState } from "react";
 import JSZip from "jszip";
 import { saveAs } from "file-saver";
+import { Analytics } from "@vercel/analytics/react"
 
 type CueMode = "merged" | "perdisc";
 
@@ -222,6 +223,7 @@ export default function App() {
           </div>
         </div>
       )}
+      <Analytics />
     </div>
   );
 }
