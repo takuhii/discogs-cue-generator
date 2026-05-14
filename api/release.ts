@@ -16,24 +16,73 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   const headers = { "User-Agent": "DiscogsCueGenerator/1.0" };
 
+  const fetchJson = async (url: string) => {
+    const r = await fetch(url, { headers });
+    if (!r.ok) return null;
+    return r.json();
+  };
+
   try {
     let releaseId = id;
 
-    // If it's a master ID, resolve to the main release first
     if (type === "master") {
-      const masterRes = await fetch(
-        `https://api.discogs.com/masters/${id}?key=${key}&secret=${secret}`,
-        { headers }
+      // First try the main release
+      const masterData = await fetchJson(
+        `https://api.discogs.com/masters/${id}?key=${key}&secret=${secret}`
       );
 
-      if (!masterRes.ok) {
-        return res.status(masterRes.status).json({ error: "Master not found on Discogs" });
+      if (!masterData) {
+        return res.status(404).json({ error: "Master not found on Discogs" });
       }
 
-      const masterData = await masterRes.json();
-      releaseId = String(masterData.main_release);
+      // Try main release first
+      const mainRelease = await fetchJson(
+        `https://api.discogs.com/releases/${masterData.main_release}?key=${key}&secret=${secret}`
+      );
+
+      const hasTimings = (data: any) =>
+        data?.tracklist?.some((t: any) => t.type_ === "track" && t.duration);
+
+      if (mainRelease && hasTimings(mainRelease)) {
+        return res.status(200).json(mainRelease);
+      }
+
+      // Main release has no timings — search versions for one that does
+      let page = 1;
+      const maxPages = 5; // Don't search forever
+
+      while (page <= maxPages) {
+        const versionsData = await fetchJson(
+          `https://api.discogs.com/masters/${id}/versions?key=${key}&secret=${secret}&page=${page}&per_page=50`
+        );
+
+        if (!versionsData?.versions?.length) break;
+
+        for (const version of versionsData.versions) {
+          if (version.id === masterData.main_release) continue; // Already tried
+
+          const release = await fetchJson(
+            `https://api.discogs.com/releases/${version.id}?key=${key}&secret=${secret}`
+          );
+
+          if (release && hasTimings(release)) {
+            return res.status(200).json(release);
+          }
+        }
+
+        if (page >= versionsData.pagination?.pages) break;
+        page++;
+      }
+
+      // Fallback: return main release even without timings
+      if (mainRelease) {
+        return res.status(200).json(mainRelease);
+      }
+
+      return res.status(404).json({ error: "No release with track timings found" });
     }
 
+    // Regular release ID
     const response = await fetch(
       `https://api.discogs.com/releases/${releaseId}?key=${key}&secret=${secret}`,
       { headers }
