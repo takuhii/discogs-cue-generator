@@ -7,7 +7,8 @@
   "author": "Darren Mackintosh<takuhii@proton.me>",
   "license": "MIT",
   "scripts": {
-    "dev": "vite",
+    "dev": "vercel dev",
+    "dev:vite": "vite",
     "build": "vite build",
     "preview": "vite preview",
     "format": "prettier --write ."
@@ -23,6 +24,7 @@
     "@types/file-saver": "^2.0.7",
     "@types/react": "^18.3.10",
     "@types/react-dom": "^18.3.6",
+    "@vercel/node": "^5.8.1",
     "@vitejs/plugin-react": "^4.3.1",
     "autoprefixer": "^10.4.20",
     "postcss": "^8.4.47",

@@ -17,7 +17,7 @@ export default function App() {
     setStatus("Fetching release data…");
 
     try {
-      const res = await fetch(`https://api.discogs.com/releases/${releaseId}`);
+      const res = await fetch(`/api/release?id=${releaseId}`);
       if (!res.ok) throw new Error("Release not found");
       const data = await res.json();
 
