@@ -3,6 +3,7 @@
   "private": true,
   "version": "1.0.0",
   "type": "module",
+  "packageManager": "yarn@4.14.1",
   "description": "Generate MP3 .cue files from Discogs release IDs using React + Vite + TailwindCSS.",
   "author": "Darren Mackintosh<takuhii@proton.me>",
   "license": "MIT",
