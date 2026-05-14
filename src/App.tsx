@@ -4,9 +4,11 @@ import { saveAs } from "file-saver";
 import { Analytics } from "@vercel/analytics/react"
 
 type CueMode = "merged" | "perdisc";
+type IdType = "release" | "master";
 
 export default function App() {
   const [releaseId, setReleaseId] = useState("");
+  const [idType, setIdType] = useState<IdType>("release");
   const [cueMode, setCueMode] = useState<CueMode>("merged");
   const [status, setStatus] = useState("");
   const [previewContent, setPreviewContent] = useState("");
@@ -17,7 +19,7 @@ export default function App() {
     setStatus("Fetching release data…");
 
     try {
-      const res = await fetch(`/api/release?id=${releaseId}`);
+      const res = await fetch(`/api/release?id=${releaseId}&type=${idType}`);
       if (!res.ok) throw new Error("Release not found");
       const data = await res.json();
 
@@ -170,13 +172,23 @@ export default function App() {
       </h1>
 
       <div className="flex flex-col gap-4 w-full max-w-md">
-        <input
-          type="text"
-          placeholder="Enter Discogs Release ID (e.g. 263908)"
-          className="p-3 rounded text-black"
-          value={releaseId}
-          onChange={(e) => setReleaseId(e.target.value)}
-        />
+        <div className="flex gap-3">
+          <input
+            type="text"
+            placeholder={idType === "release" ? "Release ID (e.g. 263908)" : "Master ID (e.g. 69082)"}
+            className="p-3 rounded text-black flex-1"
+            value={releaseId}
+            onChange={(e) => setReleaseId(e.target.value)}
+          />
+          <select
+            value={idType}
+            onChange={(e) => setIdType(e.target.value as IdType)}
+            className="p-3 rounded text-black"
+          >
+            <option value="release">Release</option>
+            <option value="master">Master</option>
+          </select>
+        </div>
 
         <select
           value={cueMode}
